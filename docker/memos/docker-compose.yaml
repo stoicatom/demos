@@ -1,0 +1,50 @@
+# ==================================================
+# memos 记事本 — 生产部署
+# 用途: 开源 memos 自托管,SQLite 存储,复用现有 nginx 反代
+# 部署: /opt/memos/  →  docker compose up -d
+# 访问: https://<你的域名> (经 nginx 反代,见 nginx/memos.conf)
+# ==================================================
+
+services:
+  memos:
+    image: neosmemo/memos:0.29.1 # 固定版本号,可控升级/回滚(勿用 stable 滚动标签)
+    container_name: memos
+    restart: unless-stopped
+
+    # 日志轮转 — 防止日志撑爆磁盘
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+    environment:
+      # SQLite 驱动 + 生产模式(数据文件 memos_prod.db 由 mode 决定前缀)
+      MEMOS_DRIVER: sqlite
+      MEMOS_MODE: prod
+      # 容器内监听地址/端口 — 仅监听容器内部,由 ports 段控制对外绑定
+      MEMOS_ADDR: 0.0.0.0
+      MEMOS_PORT: '5230'
+      TZ: Asia/Shanghai
+
+    volumes:
+      # 数据持久化 — SQLite 库文件 + 上传资源都落在这里,备份只需拷这个目录
+      - ./data:/var/opt/memos
+
+    ports:
+      # 关键安全约定:绑定到 172.17.0.1 (docker0 网桥),不用 0.0.0.0。
+      # Docker 直接发布端口的 DNAT 在 PREROUTING 阶段执行,不经过 INPUT 链,
+      # 会绕过云防火墙/安全组导致 5230 公网可达。绑定 172.17.0.1 后,
+      # 仅宿主机与同机 nginx 反代可访问,公网无法直连。
+      - target: 5230
+        published: '${MEMOS_PORT:-5230}'
+        host_ip: '${BIND_HOST:-172.17.0.1}'
+        protocol: tcp
+
+    healthcheck:
+      # memos 提供 /healthz 健康检查端点
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:5230/healthz']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

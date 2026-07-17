@@ -1,0 +1,10 @@
+# 运行时数据 —— SQLite 库文件、上传附件,绝不进 git
+data/
+
+# 真实环境变量 —— 仅存在于远端,不进 git
+.env
+
+# 备份文件
+*.bak
+backup/
+*.tar.gz
