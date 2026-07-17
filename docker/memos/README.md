@@ -80,17 +80,28 @@ docker exec nginx nginx -s reload          # 校验通过才热加载
 
 ## 数据备份
 
-SQLite 数据全部在 `/opt/memos/data/`,备份即拷贝该目录。使用内置脚本做在线一致性备份:
+SQLite 数据全部在 `/opt/memos/data/`。由于 SQLite 使用 WAL 模式,直接拷贝主库文件会漏掉 WAL 中未合并的数据,故 `backup.sh` 采用**停机一致性备份**:先 `stop` 容器(库落到一致状态)→ 打包整个 `data/` 目录 → `start`,停机窗口约 2-3 秒。脚本带 `trap`,即使中途失败也会自动拉起容器。
 
 ```bash
 cd /opt/memos && bash backup.sh
 ```
 
-配置每日自动备份(crontab):
+产物为 `/opt/memos/backup/memos-YYYYMMDD-HHMMSS.tar.gz`,保留最近 14 天。
+
+**已配置的每日自动备份(crontab,追加于既有任务之后)**:
 
 ```bash
-# 每天凌晨 3:17 备份(错开整点)
+# 每天凌晨 3:17 备份(错开整点),日志写入 backup/backup.log
 17 3 * * * cd /opt/memos && bash backup.sh >> /opt/memos/backup/backup.log 2>&1
+```
+
+### 从备份恢复
+
+```bash
+cd /opt/memos
+docker compose stop memos
+tar -xzf backup/memos-<时间戳>.tar.gz -C data/   # 解出 memos_prod.db 覆盖
+docker compose start memos
 ```
 
 ## 升级(固定版本策略)
@@ -110,8 +121,7 @@ docker compose logs -f                      # 4. 验证
 cd /opt/memos
 # 将 docker-compose.yaml 的 image tag 改回旧版本
 docker compose up -d
-# 如数据结构不兼容,恢复备份:
-#   解压 backup/memos-*.tar.gz,将 memos_prod.backup.db 改名为 memos_prod.db 放回 data/
+# 如数据结构不兼容,恢复备份:见上文「从备份恢复」
 ```
 
 ## 常用运维命令
