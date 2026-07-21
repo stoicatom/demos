@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>single-spa 主应用 · 微前端 Demo</title>
+    <style>
+      body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .topbar { display: flex; gap: 16px; align-items: center; padding: 12px 20px; background: #16315f; color: #fff; }
+      .topbar a { color: #9cc0ff; text-decoration: none; cursor: pointer; }
+      #app-viewport { padding: 20px; }
+    </style>
+    <!-- SystemJS + import map:子应用模块名 → 运行时 URL(相对 publicPath,可移植) -->
+    <script type="systemjs-importmap">
+      {
+        "imports": {
+          "single-spa": "https://cdn.jsdelivr.net/npm/single-spa@6.0.3/lib/es2015/system/single-spa.min.js",
+          "@mf-demo/root-config": "<%= publicPath %>root-config.js",
+          "@mf-demo/sub-vue": "<%= publicPath %>sub-vue/js-app.js",
+          "@mf-demo/sub-react": "<%= publicPath %>sub-react/js-app.js"
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/systemjs@6.15.1/dist/system.min.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <strong>single-spa 主应用</strong>
+      <nav>
+        <a href="<%= publicPath %>">首页</a>
+        <a href="<%= publicPath %>vue">Vue 子应用</a>
+        <a href="<%= publicPath %>react">React 子应用</a>
+      </nav>
+    </header>
+    <main id="app-viewport"></main>
+    <script>
+      System.import('@mf-demo/root-config')
+    </script>
+  </body>
+</html>

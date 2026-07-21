@@ -1,0 +1,19 @@
+{
+  "name": "@mf-demo/qiankun-main",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vue-cli-service serve --port 7100",
+    "build": "vue-cli-service build",
+    "preview": "vue-cli-service serve --port 7100"
+  },
+  "dependencies": {
+    "qiankun": "2.10.16",
+    "vue": "^3.3.11",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8",
+    "@vue/compiler-sfc": "^3.3.11"
+  }
+}

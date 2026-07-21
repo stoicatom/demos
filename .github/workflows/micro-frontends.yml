@@ -1,0 +1,53 @@
+name: Deploy Micro-Frontends Demos
+
+# 独立于现有 pages.yml:仅构建并部署 micro-frontends/ 样例到 gh-pages 的子目录,
+# 不影响 code-snippets 等现有内容(destination_dir + keep_files)。
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'micro-frontends/**'
+      - '.github/workflows/micro-frontends.yml'
+  workflow_dispatch: # 支持手动触发
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Demos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter "@mf-demo/*..."
+
+      - name: Build all demos
+        # 换仓库名零改动:仓库名即部署 base 前缀
+        env:
+          PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/
+          NODE_ENV: production
+        run: pnpm --filter "@mf-demo/*" run build
+
+      - name: Assemble dist
+        run: node micro-frontends/scripts/assemble-dist.mjs dist
+
+      - name: Deploy to gh-pages/micro-frontends
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist/micro-frontends
+          destination_dir: micro-frontends # 部署到子目录
+          keep_files: true # 不删除 gh-pages 上的现有内容
+          full_commit_message: 'deploy: micro-frontends demos ${{ github.sha }}'

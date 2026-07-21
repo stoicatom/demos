@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>微前端框架样例集 · Micro Frontends Demos</title>
+    <meta
+      name="description"
+      content="single-spa / qiankun / Module Federation / wujie / micro-app 五大主流微前端框架的可运行样例"
+    />
+    <style>
+      :root {
+        --bg: #0b1b34;
+        --bg2: #0e2344;
+        --line: rgba(156, 192, 255, 0.14);
+        --ink: #eaf1ff;
+        --muted: #8ea8d4;
+        --accent: #6ea8ff;
+        --vue: #42b883;
+        --react: #61dafb;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code",
+          Menlo, Consolas, monospace;
+        --sans: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei",
+          Roboto, Helvetica, Arial, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--bg);
+        background-image:
+          radial-gradient(
+            ellipse 80% 50% at 75% -10%,
+            rgba(110, 168, 255, 0.18),
+            transparent 60%
+          ),
+          linear-gradient(160deg, #0b1b34 0%, #12294d 55%, #1a3a6e 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* 精密网格纹理:象征微前端的模块化编排 */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(ellipse 120% 100% at 50% 0%, #000 55%, transparent 92%);
+        -webkit-mask-image: radial-gradient(ellipse 120% 100% at 50% 0%, #000 55%, transparent 92%);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 72px 24px 96px;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 32px;
+        height: 1px;
+        background: var(--accent);
+      }
+      h1 {
+        font-size: clamp(38px, 6vw, 68px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+      h1 .en {
+        display: block;
+        font-family: var(--mono);
+        font-size: clamp(14px, 2vw, 20px);
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        margin-top: 16px;
+      }
+      .lede {
+        max-width: 620px;
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 17px;
+      }
+      .lede strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .grid {
+        margin-top: 64px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 18px;
+      }
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 26px 24px 22px;
+        background: rgba(14, 35, 68, 0.7);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        text-decoration: none;
+        color: inherit;
+        overflow: hidden;
+        transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1),
+          border-color 0.25s, background 0.25s;
+      }
+      .card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--c, var(--accent));
+        opacity: 0.85;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(156, 192, 255, 0.4);
+        background: rgba(18, 41, 77, 0.9);
+      }
+      .card .idx {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+      .card h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 10px 0 6px;
+        letter-spacing: -0.01em;
+      }
+      .card .maker {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--c, var(--accent));
+        margin-bottom: 14px;
+      }
+      .card p {
+        font-size: 14px;
+        color: var(--muted);
+        flex: 1;
+      }
+      .card .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 18px;
+      }
+      .tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 3px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+      }
+      .card .go {
+        margin-top: 18px;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card .go::after {
+        content: "→";
+        transition: transform 0.25s;
+      }
+      .card:hover .go::after {
+        transform: translateX(6px);
+      }
+      footer {
+        margin-top: 72px;
+        padding-top: 28px;
+        border-top: 1px solid var(--line);
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+        justify-content: space-between;
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      /* 载入时错落淡入 */
+      .card {
+        opacity: 0;
+        animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      }
+      .card:nth-child(1) { animation-delay: 0.05s; }
+      .card:nth-child(2) { animation-delay: 0.12s; }
+      .card:nth-child(3) { animation-delay: 0.19s; }
+      .card:nth-child(4) { animation-delay: 0.26s; }
+      .card:nth-child(5) { animation-delay: 0.33s; }
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .card { animation: none; opacity: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="eyebrow">Micro Frontends · Runnable Demos</p>
+      <h1>
+        微前端框架样例集
+        <span class="en">five mainstream frameworks, one running reference</span>
+      </h1>
+      <p class="lede">
+        这里是《微前端从入门到精通》一文的配套样例。每套框架都是
+        <strong>1 个主应用 + 2 个异构子应用(Vue 3 与 React)</strong>,基于各自
+        <strong>官方权威接入方式</strong>构建,可点击直达运行时效果。
+      </p>
+
+      <div class="grid">
+        <a class="card" style="--c: #4a7fd6" href="./single-spa/">
+          <span class="idx">01</span>
+          <h2>single-spa</h2>
+          <span class="maker">社区 · 微前端鼻祖</span>
+          <p>路由劫持 + 生命周期编排的元框架,通过 SystemJS import map 加载异构子应用。</p>
+          <div class="tags">
+            <span class="tag">webpack 5</span>
+            <span class="tag">SystemJS</span>
+            <span class="tag">import map</span>
+          </div>
+          <span class="go">查看运行效果</span>
+        </a>
+
+        <a class="card" style="--c: #2f9d74" href="./qiankun/">
+          <span class="idx">02</span>
+          <h2>qiankun</h2>
+          <span class="maker">阿里 · 国内事实标准</span>
+          <p>基于 single-spa 的 HTML Entry 方案,内置 JS 沙箱、样式隔离与全局状态通信。</p>
+          <div class="tags">
+            <span class="tag">Vue CLI</span>
+            <span class="tag">JS 沙箱</span>
+            <span class="tag">initGlobalState</span>
+          </div>
+          <span class="go">查看运行效果</span>
+        </a>
+
+        <a class="card" style="--c: #c98f3a" href="./module-federation/host/">
+          <span class="idx">03</span>
+          <h2>Module Federation</h2>
+          <span class="maker">Webpack 官方 · 模块共享</span>
+          <p>构建时的模块联邦,运行时 registerRemotes 加载远程模块并共享依赖。</p>
+          <div class="tags">
+            <span class="tag">Rspack</span>
+            <span class="tag">MF 2.0</span>
+            <span class="tag">shared singleton</span>
+          </div>
+          <span class="go">查看运行效果</span>
+        </a>
+
+        <a class="card" style="--c: #c14b74" href="./wujie/">
+          <span class="idx">04</span>
+          <h2>wujie 无界</h2>
+          <span class="maker">腾讯 · iframe 沙箱</span>
+          <p>iframe 承载 JS、WebComponent 承载渲染,架构级隔离,天然保活与 bus 通信。</p>
+          <div class="tags">
+            <span class="tag">Vite</span>
+            <span class="tag">iframe + ShadowDOM</span>
+            <span class="tag">keep-alive</span>
+          </div>
+          <span class="go">查看运行效果</span>
+        </a>
+
+        <a class="card" style="--c: #4a7fd6" href="./micro-app/">
+          <span class="idx">05</span>
+          <h2>micro-app</h2>
+          <span class="maker">京东 · WebComponent</span>
+          <p>以自定义元素承载子应用,类 iframe 沙箱 + scopecss,EventCenter 数据通信。</p>
+          <div class="tags">
+            <span class="tag">Vite</span>
+            <span class="tag">CustomElement</span>
+            <span class="tag">EventCenter</span>
+          </div>
+          <span class="go">查看运行效果</span>
+        </a>
+
+        <a class="card" style="--c: #e7b567" href="./from-scratch/">
+          <span class="idx">⚡</span>
+          <h2>手写微前端内核</h2>
+          <span class="maker">From Scratch · 教学实现</span>
+          <p>可运行、忠于源码的三个手写内核:极简 single-spa(状态机)、wujie 双容器(iframe+ShadowRoot)、micro-app with 沙箱(Proxy 隔离)。</p>
+          <div class="tags">
+            <span class="tag">mini-single-spa</span>
+            <span class="tag">mini-wujie</span>
+            <span class="tag">with 沙箱</span>
+          </div>
+          <span class="go">交互验证</span>
+        </a>
+      </div>
+
+      <footer>
+        <span>本地开发端口 7100 / 8100 / 8200 / 8300 / 9100 段错开,详见各 demo README</span>
+        <span>源码 · <a href="https://github.com/lorainwings/demos/tree/master/micro-frontends">github.com/lorainwings/demos</a></span>
+      </footer>
+    </div>
+  </body>
+</html>

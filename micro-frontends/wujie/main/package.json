@@ -1,0 +1,20 @@
+{
+  "name": "@mf-demo/wujie-main",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite --port 8200",
+    "build": "vite build",
+    "preview": "vite preview --port 8200"
+  },
+  "dependencies": {
+    "vue": "^3.3.11",
+    "wujie": "2.1.0",
+    "wujie-vue3": "2.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.2",
+    "vite": "^5.0.8"
+  }
+}

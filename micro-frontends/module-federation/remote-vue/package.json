@@ -1,0 +1,19 @@
+{
+  "name": "@mf-demo/mf-remote-vue",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "rspack serve --mode development",
+    "build": "rspack build --mode production",
+    "preview": "rspack serve --mode development"
+  },
+  "dependencies": {
+    "vue": "^3.3.11"
+  },
+  "devDependencies": {
+    "@module-federation/enhanced": "2.8.0",
+    "@rspack/cli": "^1.1.0",
+    "@rspack/core": "^1.1.0",
+    "vue-loader": "^17.4.2"
+  }
+}

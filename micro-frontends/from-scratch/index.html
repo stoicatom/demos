@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>手写微前端内核 · From Scratch</title>
+    <style>
+      :root {
+        --bg: #0b1b34;
+        --line: rgba(156, 192, 255, 0.14);
+        --ink: #eaf1ff;
+        --muted: #8ea8d4;
+        --accent: #6ea8ff;
+        --green: #57c99a;
+        --amber: #e7b567;
+        --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+        --sans: -apple-system, 'Segoe UI', 'PingFang SC', Roboto, Arial, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--bg);
+        background-image: radial-gradient(ellipse 80% 50% at 75% -10%, rgba(110,168,255,0.18), transparent 60%),
+          linear-gradient(160deg, #0b1b34 0%, #12294d 55%, #1a3a6e 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 80px; }
+      .eyebrow {
+        font-family: var(--mono); font-size: 12px; letter-spacing: 0.28em;
+        text-transform: uppercase; color: var(--accent); margin-bottom: 18px;
+      }
+      h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: -0.02em; }
+      .lede { max-width: 640px; margin-top: 18px; color: var(--muted); font-size: 16px; }
+      .card {
+        margin-top: 28px; padding: 24px; background: rgba(14,35,68,0.7);
+        border: 1px solid var(--line); border-radius: 14px;
+      }
+      .card h2 { font-size: 22px; display: flex; align-items: center; gap: 10px; }
+      .card h2 .tag {
+        font-family: var(--mono); font-size: 11px; padding: 3px 8px;
+        border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-weight: 400;
+      }
+      .card p.desc { color: var(--muted); font-size: 14px; margin: 8px 0 16px; }
+      .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+      button {
+        font-family: var(--sans); font-size: 14px; padding: 8px 16px; cursor: pointer;
+        color: var(--ink); border: 1px solid var(--accent);
+        border-radius: 8px; background: rgba(110,168,255,0.12); transition: background 0.2s;
+      }
+      button:hover { background: rgba(110,168,255,0.25); }
+      .viewport {
+        min-height: 60px; padding: 14px; border: 1px dashed var(--line);
+        border-radius: 8px; background: rgba(0,0,0,0.2);
+      }
+      .log {
+        font-family: var(--mono); font-size: 12.5px; color: var(--green);
+        white-space: pre-wrap; margin-top: 12px; max-height: 220px; overflow: auto;
+        padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px;
+      }
+      .log .warn { color: var(--amber); }
+      .log .info { color: var(--muted); }
+      a.back { color: var(--accent); text-decoration: none; font-size: 14px; }
+      code { font-family: var(--mono); background: rgba(110,168,255,0.12); padding: 1px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="eyebrow">Micro Frontends · From Scratch</p>
+      <h1>手写微前端内核</h1>
+      <p class="lede">
+        这里把《微前端从入门到精通》文章里的手写实现做成了<strong>真实可运行</strong>的代码,
+        且每一处都忠于官方源码的核心机制。三个内核各自可交互验证——看状态机流转、看沙箱隔离、看双容器渲染。
+        源码带 <code>对应源码文件</code> 注释, 对照官方仓库即可印证。
+      </p>
+      <p style="margin-top:16px"><a class="back" href="../">← 返回样例总导航</a></p>
+
+      <!-- 1. mini-single-spa -->
+      <section class="card">
+        <h2>1. mini-single-spa <span class="tag">状态机 + reroute 调度</span></h2>
+        <p class="desc">
+          注册两个"子应用"(纯函数模拟), 点击切换路由, 观察 single-spa 的状态机流转:
+          NOT_LOADED → ... → MOUNTED → UNMOUNTING。对应源码 <code>src/navigation/reroute.js</code>。
+        </p>
+        <div class="controls">
+          <button id="ss-vue">切到 /vue</button>
+          <button id="ss-react">切到 /react</button>
+          <button id="ss-home">切到 /(都不激活)</button>
+        </div>
+        <div class="viewport" id="ss-viewport"></div>
+        <div class="log" id="ss-log"></div>
+      </section>
+
+      <!-- 2. mini-with-sandbox -->
+      <section class="card">
+        <h2>2. mini-with-sandbox <span class="tag">with + Proxy 隔离</span></h2>
+        <p class="desc">
+          在沙箱里执行一段"污染全局"的子应用代码, 验证它写的全局变量<strong>不泄漏到真实 window</strong>,
+          卸载后自动清理。对应 micro-app <code>src/sandbox/with/window.ts</code>。
+        </p>
+        <div class="controls">
+          <button id="sb-run">在沙箱里运行子应用代码</button>
+          <button id="sb-check">检查真实 window 是否被污染</button>
+          <button id="sb-stop">卸载沙箱(清理全局)</button>
+        </div>
+        <div class="log" id="sb-log"></div>
+      </section>
+
+      <!-- 3. mini-wujie -->
+      <section class="card">
+        <h2>3. mini-wujie <span class="tag">iframe + ShadowRoot 双容器</span></h2>
+        <p class="desc">
+          把一个子应用页面加载进"iframe 跑 JS + ShadowRoot 渲染 DOM"的双容器, 子应用的
+          <code>document.querySelector</code> 实际作用在 ShadowRoot 上。对应 wujie <code>packages/wujie-core/src/proxy.ts</code>。
+        </p>
+        <div class="controls">
+          <button id="wj-load">加载子应用到双容器</button>
+          <button id="wj-inspect">验证 JS 在 iframe、DOM 在 ShadowRoot</button>
+          <button id="wj-destroy">销毁</button>
+        </div>
+        <div class="viewport" id="wj-viewport"></div>
+        <div class="log" id="wj-log"></div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

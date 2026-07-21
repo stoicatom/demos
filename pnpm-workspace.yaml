@@ -4,3 +4,5 @@ packages:
   - 'node/**'
   - 'third-scripts/**'
   - 'code-snippets/**'
+  - 'micro-frontends/*'
+  - 'micro-frontends/*/*'

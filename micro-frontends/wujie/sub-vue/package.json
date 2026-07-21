@@ -1,0 +1,19 @@
+{
+  "name": "@mf-demo/wujie-sub-vue",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite --port 8201",
+    "build": "vite build",
+    "preview": "vite preview --port 8201"
+  },
+  "dependencies": {
+    "vue": "^3.3.11",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.2",
+    "vite": "^5.0.8"
+  }
+}
