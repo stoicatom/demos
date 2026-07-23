@@ -43,4 +43,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./code-snippets/htmls
+          keep_files: true  # 保留 gh-pages 上的现有内容(micro-frontends/ 和根 404.html)
 
