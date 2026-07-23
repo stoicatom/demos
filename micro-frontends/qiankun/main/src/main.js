@@ -14,6 +14,14 @@ const router = createRouter({
 
 createApp(App).use(router).mount('#app')
 
+// GitHub Pages 404 fallback:从 ?redirect= 恢复路由状态
+const params = new URLSearchParams(location.search)
+const redirect = params.get('redirect')
+if (redirect) {
+  // 清除 query 参数并跳转到原路径(qiankun 会根据 activeRule 激活子应用)
+  history.replaceState(null, '', BASE + redirect.replace(/^\//, ''))
+}
+
 // 开发环境子应用跑在独立端口(跨域);生产环境为同源子目录
 const isDev = process.env.NODE_ENV !== 'production'
 const subVueEntry = isDev ? '//localhost:7101' : `${BASE}sub-vue/`

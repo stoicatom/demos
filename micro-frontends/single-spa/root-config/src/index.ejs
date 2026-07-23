@@ -34,6 +34,16 @@
     </header>
     <main id="app-viewport"></main>
     <script>
+      // GitHub Pages 404 fallback:从 ?redirect= 恢复前端路由状态
+      (function() {
+        var params = new URLSearchParams(location.search);
+        var redirect = params.get('redirect');
+        if (redirect) {
+          // 清除 query 并替换为原路径,让 single-spa 路由接管
+          var target = '<%= publicPath %>' + redirect.replace(/^\//, '');
+          history.replaceState(null, '', target);
+        }
+      })();
       System.import('@mf-demo/root-config')
     </script>
   </body>

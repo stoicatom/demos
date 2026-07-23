@@ -70,6 +70,38 @@ for (const fw of frameworks) {
 writeFileSync(resolve(outRoot, '.nojekyll'), '')
 console.log('  ✓ .nojekyll')
 
+// 生成全局 404.html 用于 GitHub Pages history 模式 fallback:
+// 检测 URL 是否匹配 /micro-frontends/<framework>/* 模式,
+// 匹配则重定向到对应框架的 index.html 并保留路径作为前端路由状态
+const global404 = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <script>
+    (function() {
+      var path = window.location.pathname;
+      // 匹配 /micro-frontends/<framework>/... 格式
+      var match = path.match(/^\\/micro-frontends\\/(qiankun|single-spa|module-federation\\/host|wujie|micro-app)(\\/.*)$/);
+      if (match) {
+        var framework = match[1];
+        var route = match[2] || '/';
+        // 重定向到框架主应用 index.html, 用 ?redirect= 传递原路径让前端路由接管
+        var target = '/micro-frontends/' + framework + '/index.html?redirect=' + encodeURIComponent(route);
+        window.location.replace(target);
+      } else {
+        document.write('<p>404 - Page not found</p>');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>`;
+writeFileSync(resolve(outRoot, '404.html'), global404)
+console.log('  ✓ 404.html (global fallback for history routing)')
+
 if (missing.length) {
   console.log(`\n⚠ 缺少 ${missing.length} 个 dist(需先构建):`)
   missing.forEach((m) => console.log(`  - ${m}`))
