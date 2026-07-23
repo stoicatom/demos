@@ -7,20 +7,20 @@ import Home from './Home.vue'
 // Vue CLI 运行时注入的 publicPath:dev 为 '/',prod 为 '/demos/micro-frontends/qiankun/'
 const BASE = process.env.BASE_URL
 
+// GitHub Pages 404 fallback:必须在 createApp / Vue Router 初始化之前调用,
+// 否则 Vue Router 监听到 replaceState 会把未知路由重定向回首页,干扰 qiankun 的 activeRule 匹配。
+const params = new URLSearchParams(location.search)
+const redirect = params.get('redirect')
+if (redirect) {
+  history.replaceState(null, '', BASE + redirect.replace(/^\//, ''))
+}
+
 const router = createRouter({
   history: createWebHistory(BASE),
   routes: [{ path: '/', component: Home }]
 })
 
 createApp(App).use(router).mount('#app')
-
-// GitHub Pages 404 fallback:从 ?redirect= 恢复路由状态
-const params = new URLSearchParams(location.search)
-const redirect = params.get('redirect')
-if (redirect) {
-  // 清除 query 参数并跳转到原路径(qiankun 会根据 activeRule 激活子应用)
-  history.replaceState(null, '', BASE + redirect.replace(/^\//, ''))
-}
 
 // 开发环境子应用跑在独立端口(跨域);生产环境为同源子目录
 const isDev = process.env.NODE_ENV !== 'production'

@@ -80,18 +80,35 @@ const global404 = `<!DOCTYPE html>
   <title>Redirecting...</title>
   <script>
     (function() {
+      // 注意: GitHub Pages project page 的 pathname 带仓库名前缀,
+      // 如 /demos/micro-frontends/qiankun/app-vue。因此不能用 ^ 锚定 /micro-frontends,
+      // 而要动态定位 "micro-frontends/" 段, 保留其前面的 base 前缀 (/demos)。
       var path = window.location.pathname;
-      // 匹配 /micro-frontends/<framework>/... 格式
-      var match = path.match(/^\\/micro-frontends\\/(qiankun|single-spa|module-federation\\/host|wujie|micro-app)(\\/.*)$/);
-      if (match) {
-        var framework = match[1];
-        var route = match[2] || '/';
-        // 重定向到框架主应用 index.html, 用 ?redirect= 传递原路径让前端路由接管
-        var target = '/micro-frontends/' + framework + '/index.html?redirect=' + encodeURIComponent(route);
-        window.location.replace(target);
-      } else {
-        document.write('<p>404 - Page not found</p>');
+      var marker = '/micro-frontends/';
+      var idx = path.indexOf(marker);
+      if (idx !== -1) {
+        var base = path.slice(0, idx + marker.length); // 形如 /demos/micro-frontends/
+        var rest = path.slice(idx + marker.length);      // 形如 qiankun/app-vue
+        // 提取框架名: 单段 (qiankun/single-spa/wujie/micro-app) 或双段 (module-federation/host)
+        var frameworks = ['module-federation/host', 'qiankun', 'single-spa', 'wujie', 'micro-app'];
+        var framework = null;
+        var route = '/';
+        for (var i = 0; i < frameworks.length; i++) {
+          var fw = frameworks[i];
+          if (rest === fw || rest.indexOf(fw + '/') === 0) {
+            framework = fw;
+            route = rest.slice(fw.length) || '/'; // 形如 /app-vue
+            break;
+          }
+        }
+        if (framework) {
+          // 重定向到框架主应用 index.html, 用 ?redirect= 传递原路径让前端路由接管
+          var target = base + framework + '/index.html?redirect=' + encodeURIComponent(route);
+          window.location.replace(target);
+          return;
+        }
       }
+      document.body.innerHTML = '<p>404 - Page not found</p>';
     })();
   </script>
 </head>
