@@ -43,11 +43,15 @@ jobs:
       - name: Assemble dist
         run: node micro-frontends/scripts/assemble-dist.mjs dist
 
-      - name: Deploy to gh-pages/micro-frontends
+      - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/micro-frontends
-          destination_dir: micro-frontends # 部署到子目录
-          keep_files: true # 不删除 gh-pages 上的现有内容
+          publish_dir: ./dist
+          # 从 dist 根部署,一次覆盖三类产物:
+          #   dist/micro-frontends/*  → /micro-frontends/*  (各框架样例)
+          #   dist/404.html           → /404.html           (GitHub Pages 全站 404 fallback;
+          #                                                    子目录 404.html 不生效,必须放根目录)
+          #   dist/.nojekyll          → /.nojekyll           (关闭 Jekyll,保留下划线开头资源)
+          keep_files: true # 保留 gh-pages 上现有的 code-snippets 内容
           full_commit_message: 'deploy: micro-frontends demos ${{ github.sha }}'
