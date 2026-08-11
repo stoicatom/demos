@@ -14,6 +14,11 @@ const fs = require('fs')
 const mime = require('mime-types')
 
 const server = http.createServer((req, res) => {
+    if (path.normalize(decodeURIComponent(pathname)) !== decodeURIComponent(pathname)) {
+        res.statusCode = 403;
+        res.end();
+        return;
+    }
   const { pathname, query } = url.parse(req.url)
   const name = decodeURIComponent(pathname)
   const assets = path.join(__dirname, 'assets', name)
