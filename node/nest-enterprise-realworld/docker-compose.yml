@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: nest-enterprise-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: nest_enterprise_db
+      MYSQL_USER: nest_user
+      MYSQL_PASSWORD: nest_password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - nest-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: nest-enterprise-redis
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - nest-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest-enterprise-api
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: nest_user
+      DB_PASSWORD: nest_password
+      DB_DATABASE: nest_enterprise_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: super_secret_jwt_access_token_key_for_nest_2026
+      JWT_EXPIRATION: 15m
+      JWT_REFRESH_SECRET: super_secret_jwt_refresh_token_key_for_nest_2026
+      JWT_REFRESH_EXPIRATION: 7d
+    networks:
+      - nest-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  nest-network:
+    driver: bridge

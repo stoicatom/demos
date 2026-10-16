@@ -27,6 +27,7 @@
 - [数据库相关](/database/)
 
 - [Node 相关](/node/)
+  - [NestJS 企业级真实项目实战 (nest-enterprise-realworld)](/node/nest-enterprise-realworld/)
 
 - [第三方脚本-油候 & Autojs](/third-scripts/)
 
